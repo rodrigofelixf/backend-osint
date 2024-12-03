@@ -17,7 +17,7 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 
 async def enviar_email(destinatario: str, assunto: str, mensagem_html: str):
     email = EmailMessage()
-    email["From"] = f"Start Cyber <{SMTP_USERNAME}>"
+    email["From"] = f"Start Osint Sec - SOS <{SMTP_USERNAME}>"
     email["To"] = destinatario
     email["Subject"] = assunto
 

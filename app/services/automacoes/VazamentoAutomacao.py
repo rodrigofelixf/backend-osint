@@ -53,7 +53,7 @@ def gerar_mensagem_html_multi(usuario_nome: str, vazamentos: list):
             {vazamentos_html}
             <div class="footer">
                 <p>Atenciosamente,</p>
-                <p><strong>Equipe de Segurança Start Cyber</strong></p>
+                <p><strong>Equipe de Segurança Start Osinc Sec - SOS</strong></p>
             </div>
         </div>
     </body>

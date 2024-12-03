@@ -256,7 +256,7 @@ async def notificar_vazamento_usuario_por_email_demonstrativo(email_usuario: str
             </div>
             <div class="footer">
                 <p>Atenciosamente,</p>
-                <p><strong>Equipe de Segurança Start Cyber 2</strong></p>
+                <p><strong>Equipe de Segurança Start Osinc Sec - SOS</strong></p>
                 <p class="note">Se você não reconhece esse e-mail, por favor, ignore ou entre em contato conosco.</p>
             </div>
         </div>
