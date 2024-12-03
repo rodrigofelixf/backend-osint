@@ -1,4 +1,4 @@
-
+import uuid
 
 from fastapi import APIRouter, HTTPException, Depends, status
 from app.services import UsuarioService
@@ -24,7 +24,7 @@ def get_db():
 
 
 @routerusuarios.get(endpointUsuario + "{usuarioId}", response_model= UsuarioSchemas.UsuarioReponse)
-def obter_usuario_por_id(usuarioId: int, db: Session= Depends(get_db)):
+def obter_usuario_por_id(usuarioId: uuid.UUID, db: Session= Depends(get_db)):
     usuarioEncontrado = UsuarioService.obter_usuario_pelo_id(db, usuarioId)
     return usuarioEncontrado
 
@@ -43,7 +43,7 @@ def criar_usuario(usuario: UsuarioSchemas.CreateUserRequest, db: Session= Depend
     return  usuario
 
 @routerusuarios.patch(endpointUsuario + "{usuario_id}", response_model = UsuarioSchemas.UsuarioReponse)
-def atualizar_usuario(usuario_id: int, usuario: UsuarioSchemas.UpdateUserRequest, db: Session = Depends(get_db)):
+def atualizar_usuario(usuario_id: uuid.UUID, usuario: UsuarioSchemas.UpdateUserRequest, db: Session = Depends(get_db)):
     try:
         usuario_atualizado = UsuarioService.atualizar_usuario(db, usuario_id, usuario)
         return usuario_atualizado

@@ -1,3 +1,4 @@
+import uuid
 from typing import Optional
 import httpx
 import os
@@ -50,7 +51,7 @@ async def obter_vazamentos_pelo_email_usuario_e_salva_no_db(db: Session, email: 
     return buscar_vazamentos_no_banco(db, usuario.id)
 
 
-def buscar_vazamentos_no_banco(db: Session, usuario_id: int) -> list[schemas.VazamentoResponse]:
+def buscar_vazamentos_no_banco(db: Session, usuario_id: uuid.UUID) -> list[schemas.VazamentoResponse]:
     """
     Busca vazamentos associados a um usuário no banco de dados.
     Garante que o campo data_classes seja retornado como uma lista válida.
@@ -119,7 +120,7 @@ def processar_vazamento(vazamento_data: dict) -> dict:
     }
 
 
-def criar_vazamento_no_banco_de_dados(db: Session, vazamento_dados: dict, usuario_id: int):
+def criar_vazamento_no_banco_de_dados(db: Session, vazamento_dados: dict, usuario_id: uuid.UUID):
     """
     Salva um vazamento no banco de dados associado a um usuário.
     """
@@ -293,7 +294,7 @@ async def obter_vazamentos_pelo_email_usuario_e_salva_no_db_sem_verificacao_loca
     return novos_vazamentos
 
 
-def buscar_vazamento_por_nome_e_data(db: Session, name: str, breach_date: str, usuario_id: int) -> schemas.VazamentoResponse:
+def buscar_vazamento_por_nome_e_data(db: Session, name: str, breach_date: str, usuario_id: uuid.UUID) -> schemas.VazamentoResponse:
     """
     Busca no banco de dados por um vazamento específico com o 'Name' e 'BreachDate' fornecidos e o id do usuário.
     Retorna o vazamento se encontrado, ou None se não existir.

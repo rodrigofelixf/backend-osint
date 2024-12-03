@@ -1,3 +1,5 @@
+import uuid
+
 import bcrypt
 from fastapi import HTTPException
 from app.models.usuarios import UsuarioSchemas, UsuarioModel
@@ -5,13 +7,13 @@ from sqlalchemy.orm import Session
 import logging
 
 
-def obter_usuario_pelo_id(db: Session, usuario_id: int):
-    logging.info(f"Tentando obter usuário pelo ID: {usuario_id}")
-    usuario = db.query(UsuarioModel.Usuario).filter(usuario_id == UsuarioModel.Usuario.id).first()
+def obter_usuario_pelo_id(db: Session, usuarioId: uuid.UUID):
+    logging.info(f"Tentando obter usuário pelo ID: {usuarioId}")
+    usuario = db.query(UsuarioModel.Usuario).filter(usuarioId == UsuarioModel.Usuario.id).first()
     if not usuario:
-        logging.warning(f"Usuário com ID {usuario_id} não encontrado.")
+        logging.warning(f"Usuário com ID {usuarioId} não encontrado.")
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
-    logging.info(f"Usuário com ID {usuario_id} encontrado.")
+    logging.info(f"Usuário com ID {usuarioId} encontrado.")
     return usuario
 
 
@@ -46,7 +48,7 @@ def criar_usuario(db: Session, usuario: UsuarioSchemas.CreateUserRequest):
     return db_usuario
 
 
-def atualizar_usuario(db: Session, usuario_id: int, usuario: UsuarioSchemas.UpdateUserRequest):
+def atualizar_usuario(db: Session, usuario_id: uuid.UUID, usuario: UsuarioSchemas.UpdateUserRequest):
     logging.info(f"Tentando atualizar usuário com ID: {usuario_id}")
     usuariodb = obter_usuario_pelo_id(db, usuario_id)
 

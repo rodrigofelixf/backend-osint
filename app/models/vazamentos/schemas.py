@@ -1,3 +1,5 @@
+import uuid
+
 from pydantic import BaseModel
 from datetime import datetime, date
 from typing import Optional, List
@@ -20,7 +22,7 @@ class VazamentoCreate(BaseModel):
     data_atualizacao: Optional[datetime]
     descricao: Optional[str] = None
     image_uri: Optional[str] = None
-    usuario_id: int
+    usuario_id: uuid.UUID
 
 
 class VazamentoResponse(BaseModel):
@@ -35,7 +37,7 @@ class VazamentoResponse(BaseModel):
     descricao: Optional[str] = None
     image_uri: Optional[str] = None
     data_classes: List[str] = []  # Lista de strings
-    usuario_id: int
+    usuario_id: uuid.UUID
 
     class Config:
         from_attributes = True

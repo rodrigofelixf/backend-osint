@@ -1,5 +1,6 @@
 import json
-
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Date, DateTime, Text
 from sqlalchemy.orm import relationship
 from app.db.Base import Base
@@ -17,8 +18,7 @@ class Vazamento(Base):
     descricao = Column(Text, nullable=True)
     image_uri = Column(String, nullable=True)
     data_classes = Column(Text, nullable=True)
-    usuario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
-
+    usuario_id = Column(UUID(as_uuid=True), ForeignKey("usuarios.id"), nullable=False)
     usuario = relationship("Usuario", back_populates="vazamentos")
 
 

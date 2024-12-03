@@ -1,3 +1,4 @@
+import uuid
 from typing import Optional
 
 from pydantic import BaseModel
@@ -10,7 +11,7 @@ class CreateUserRequest(BaseModel):
 
 
 class UsuarioReponse(BaseModel):
-    id: int
+    id: uuid.UUID
     nome: str
     email: str
     avatar: str
