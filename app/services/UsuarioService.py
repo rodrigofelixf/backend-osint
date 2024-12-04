@@ -63,7 +63,7 @@ class UsuarioService:
                 usuario.email == UsuarioModel.Usuario.email).first()
             if email_usuario_existente:
                 logging.warning(f"Já existe um usuário com o e-mail {usuario.email}.")
-                raise ValueError("Já existe um usuário com esse e-mail.")
+                raise HTTPException(status_code=422, detail="Voce nao pode atualizar, email em uso. Tente outro")
 
         if usuario.nome:
             logging.info(f"Alterando nome do usuário {usuariodb.nome} para {usuario.nome}")

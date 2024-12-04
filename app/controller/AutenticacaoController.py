@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends
+import logging
 
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-from pycparser.ply.yacc import token
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db_session
@@ -11,16 +11,81 @@ from app.services.AutenticacaoService import AutenticacaoService
 
 routerautenticacao = APIRouter()
 
+@routerautenticacao.get(
+    "/profile",
+    summary="Obter dados do usuário logado",
+    description="Endpoint protegido que retorna os dados do usuário atualmente autenticado, incluindo nome, e-mail e configurações."
+)
+def obter_dados_do_usuario_logado(current_user: Usuario = Depends(get_current_user)):
+    """
+    **Obter o perfil do usuário autenticado.**
+
+    - **current_user**: Usuário atualmente autenticado, obtido via token.
+
+    **Respostas possíveis**:
+    - **200 OK**: Retorna os dados do usuário autenticado.
+    - **401 Unauthorized**: Token inválido ou ausente.
+
+    **Exemplo de resposta**:
+    ```json
+    {
+        "id": "123e4567-e89b-12d3-a456-426614174000",
+        "nome": "João Silva",
+        "email": "joao.silva@example.com",
+        "avatar": "https://example.com/avatar.jpg",
+        "notificacoes_ativadas": true
+    }
+    ```
+    """
+    logging.info(f"Usuário autenticado acessou o perfil: {current_user.email}")
+    return {
+        "id": current_user.id,
+        "nome": current_user.nome,
+        "email": current_user.email,
+        "avatar": current_user.avatar,
+        "notificacoes_ativadas": current_user.notificacoes_ativadas,
+    }
 
 
-@routerautenticacao.get("/profile")
-def read_user_profile(current_user: Usuario = Depends(get_current_user)):
-    """Rota protegida que retorna o perfil do usuário"""
-    return {"id": current_user.id, "email": current_user.email}
+@routerautenticacao.post(
+    "/login",
+    summary="Autenticar usuário",
+    description=(
+        "Endpoint para autenticar um usuário com base nas credenciais fornecidas (e-mail e senha). "
+        "Retorna um token de acesso do tipo 'Bearer' em caso de sucesso."
+    )
+)
+def logar_usuario(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db_session)
+):
+    """
+    **Autenticar um usuário.**
 
+    - **form_data.username**: E-mail do usuário.
+    - **form_data.password**: Senha do usuário.
+    - **db**: Sessão do banco de dados injetada automaticamente.
 
-@routerautenticacao.post("/login")
-def logar_usuario(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db_session)):
+    **Respostas possíveis**:
+    - **200 OK**: Retorna o token de acesso.
+    - **401 Unauthorized**: Credenciais inválidas.
+
+    **Exemplo de resposta**:
+    ```json
+    {
+        "access_token": "eyJhbGciOiJIUzI1NiIsInR...",
+        "token_type": "bearer"
+    }
+    ```
+    """
+    logging.info(f"Tentativa de login para o e-mail: {form_data.username}")
     autenticacao_service = AutenticacaoService(db)
-    usuario_token = autenticacao_service.autenticar_usuario(email=form_data.username, password=form_data.password)
-    return {"access_token": usuario_token, "token_type": "bearer"}
+    try:
+        usuario_token = autenticacao_service.autenticar_usuario(
+            email=form_data.username, password=form_data.password
+        )
+        logging.info(f"Login bem-sucedido para o e-mail: {form_data.username}")
+        return {"access_token": usuario_token, "token_type": "bearer"}
+    except ValueError as e:
+        logging.warning(f"Falha no login para o e-mail {form_data.username}: {e}")
+        raise HTTPException(status_code=401, detail=str(e))

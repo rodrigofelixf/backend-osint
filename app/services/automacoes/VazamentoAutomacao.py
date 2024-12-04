@@ -1,15 +1,8 @@
 import logging
-from app.db.database import SessionLocal
-from app.services import UsuarioService, VazamentoService, EmailService
-
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+from app.db.database import SessionLocal, get_db_session
+from app.services import EmailService
+from app.services.UsuarioService import UsuarioService
+from app.services.VazamentoService import VazamentoService
 
 
 def gerar_mensagem_html_multi(usuario_nome: str, vazamentos: list):
@@ -64,16 +57,17 @@ def gerar_mensagem_html_multi(usuario_nome: str, vazamentos: list):
 async def automatizar_notificacao_vazamentos():
     logging.info("Iniciando a tarefa de notificação de vazamentos.")
     try:
-        db = next(get_db())
-
-        usuarios_com_notificacoes = UsuarioService.obter_lista_de_usuarios_com_notifacao_ativadas(db)
+        db = next(get_db_session())
+        usuario_service = UsuarioService(db)
+        usuarios_com_notificacoes = usuario_service.obter_lista_de_usuarios_com_notifacao_ativadas()
         if not usuarios_com_notificacoes:
             logging.info("Nenhum usuário com notificações ativas foi encontrado.")
             return
 
+        vazamento_service = VazamentoService(db)
         for usuario in usuarios_com_notificacoes:
-            vazamentos = await VazamentoService.obter_vazamentos_pelo_email_usuario_e_salva_no_db_sem_verificacao_local(
-                db, usuario.email
+            vazamentos = await vazamento_service.obter_vazamentos_pelo_email_usuario_e_salva_no_db_sem_verificacao_local(
+                usuario.email
             )
 
             if vazamentos:

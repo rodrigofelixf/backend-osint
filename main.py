@@ -41,7 +41,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix="/v1/api", tags=["Vazamentos"])
-app.include_router(api_router_usuarios, prefix="/v1/api", tags=["Usuarios"])
+app.include_router(api_router_usuarios, prefix="/v1/api")
 app.include_router(api_router_autenticacao, prefix="/v1/api", tags=["Autenticacao"])
 
 scheduler = AsyncIOScheduler()

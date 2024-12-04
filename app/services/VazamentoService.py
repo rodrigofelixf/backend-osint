@@ -139,6 +139,6 @@ class VazamentoService:
         return self.db.query(models.Vazamento).filter(
             name == models.Vazamento.nome,
             breach_date == models.Vazamento.data_vazamento,
-            usuario_id == models.Vazamento.id
+            usuario_id == models.Vazamento.usuario_id
         ).first()
 
