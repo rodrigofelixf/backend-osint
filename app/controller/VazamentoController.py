@@ -1,20 +1,26 @@
-from fastapi import APIRouter, HTTPException, Depends
-
-from app.models.usuarios.UsuarioModel import Usuario
-from app.security.depends import get_current_user
-from app.services import VazamentoService
-from app.models.vazamentos import models, schemas
-from app.db.database import SessionLocal, engine, get_db_session
-from sqlalchemy.orm import Session
-from typing import List
-from app.services.VazamentoService import notificar_vazamento_usuario_por_email_demonstrativo
 import logging
+from typing import List
+
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
+
+from app.db.database import get_db_session
+from app.models.usuarios.UsuarioModel import Usuario
+from app.models.vazamentos import schemas
+from app.security.depends import get_current_user
+from app.services.VazamentoService import VazamentoService
+
+from app.utils.VazamentoUtils import notificar_vazamento_usuario_por_email_demonstrativo
+
+
 
 
 # Configuração do roteador FastAPI
 router = APIRouter()
 
 endpointVazamento = "/vazamentos/"
+
+
 
 
 @router.get(endpointVazamento + "procurar/{email}", response_model=List[schemas.VazamentoResponse])
@@ -30,8 +36,10 @@ async def obter_vazamentos_do_usuario_por_email(
     if current_user.email != email:
         raise HTTPException(status_code=403, detail="Você não tem permissão para acessar os vazamentos deste usuário.")
 
+    vazamento_service = VazamentoService(db)
+
     try:
-        vazamentoEncontrado = await VazamentoService.obter_vazamentos_pelo_email_usuario_e_salva_no_db(db, email)
+        vazamentoEncontrado = await vazamento_service.obter_vazamentos_pelo_email_usuario_e_salva_no_db(email)
         if vazamentoEncontrado:
             logging.info(f"Vazamentos encontrados para o e-mail: {email}")
         else:
@@ -45,8 +53,10 @@ async def obter_vazamentos_do_usuario_por_email(
 @router.get(endpointVazamento + "exporvazamentos/", response_model=List[schemas.VazamentoResponse])
 def expor_vazamentos(skip: int = 0, limit: int = 100, db: Session = Depends(get_db_session)):
     logging.info(f"Requisição recebida para expor vazamentos com paginação (skip: {skip}, limit: {limit})")
+
+    vazamento_service = VazamentoService(db)
     try:
-        vazamentos = VazamentoService.get_all_vazamentos(db, skip, limit)
+        vazamentos = vazamento_service.get_all_vazamentos(skip, limit)
         if not vazamentos:
             logging.warning(f"Nenhum vazamento encontrado na paginação (skip: {skip}, limit: {limit})")
             raise HTTPException(status_code=404, detail="Nenhum vazamento encontrado")

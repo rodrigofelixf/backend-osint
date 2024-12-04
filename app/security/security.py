@@ -1,11 +1,16 @@
+import os
+
+from dotenv import load_dotenv
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 
+load_dotenv()
 
-SECRET_KEY = "sua_chave_secreta_muito_forte"
+
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -29,3 +34,4 @@ def verify_access_token(token: str):
         return payload
     except JWTError:
         return None
+
