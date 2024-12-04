@@ -7,8 +7,6 @@ from apscheduler.triggers.cron import CronTrigger
 from app.services.automacoes.VazamentoAutomacao import automatizar_notificacao_vazamentos
 
 
-
-
 def iniciar_agendador():
     brt = pytz.timezone("America/Sao_Paulo")
     scheduler = AsyncIOScheduler()
