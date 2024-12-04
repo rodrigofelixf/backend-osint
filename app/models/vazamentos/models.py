@@ -3,7 +3,9 @@ import uuid
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Date, DateTime, Text
 from sqlalchemy.orm import relationship
-from app.db.Base import Base
+
+from app.db.database import Base
+
 
 class Vazamento(Base):
     __tablename__ = "vazamentos"

@@ -6,6 +6,8 @@ from app.models.usuarios import UsuarioSchemas, UsuarioModel
 from sqlalchemy.orm import Session
 import logging
 
+from app.security.security import hash_password
+
 
 def obter_usuario_pelo_id(db: Session, usuarioId: uuid.UUID):
     logging.info(f"Tentando obter usuário pelo ID: {usuarioId}")
@@ -34,12 +36,12 @@ def criar_usuario(db: Session, usuario: UsuarioSchemas.CreateUserRequest):
         logging.warning(f"Já existe um usuário com o e-mail {usuario.email}.")
         raise ValueError("Já existe um usuário com esse e-mail.")
 
-    senha_criptografada = bcrypt.hashpw(usuario.senha.encode('utf8'), bcrypt.gensalt())
+    senha_criptografada = hash_password(usuario.senha)
 
     db_usuario = UsuarioModel.Usuario(
         nome=usuario.nome,
         email=usuario.email,
-        senha=senha_criptografada.decode('utf-8')
+        senha=senha_criptografada
     )
     db.add(db_usuario)
     db.commit()
@@ -66,8 +68,8 @@ def atualizar_usuario(db: Session, usuario_id: uuid.UUID, usuario: UsuarioSchema
     if usuario.email:
         usuariodb.email = usuario.email
     if usuario.senha:
-        senha_criptografada = bcrypt.hashpw(usuario.senha.encode('utf8'), bcrypt.gensalt())
-        usuariodb.senha = senha_criptografada.decode('utf-8')
+        senha_criptografada = hash_password(usuario.senha)
+        usuariodb.senha = senha_criptografada
     if usuario.notificacoes_ativadas is not None:
         usuariodb.notificacoes_ativadas = usuario.notificacoes_ativadas
 

@@ -5,7 +5,8 @@ from datetime import datetime
 from sqlalchemy.orm import relationship
 
 from sqlalchemy.dialects.postgresql import UUID
-from app.db.Base import Base
+
+from app.db.database import Base
 from app.utils.assets.Images_url import usuario_avatar
 
 class Usuario(Base):
