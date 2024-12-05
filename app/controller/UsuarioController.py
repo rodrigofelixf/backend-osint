@@ -1,7 +1,8 @@
+import logging
 import uuid
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
-from sqlalchemy.testing.plugin.plugin_base import logging
+
 
 from app.db.database import get_db_session
 from app.models.usuarios import UsuarioSchemas
