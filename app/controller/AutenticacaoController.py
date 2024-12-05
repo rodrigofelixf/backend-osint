@@ -5,6 +5,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db_session
+from app.models.autenticacao.login_schemas import LoginRequest
 from app.models.usuarios.UsuarioModel import Usuario
 from app.security.depends import get_current_user
 from app.services.AutenticacaoService import AutenticacaoService
@@ -47,36 +48,13 @@ def obter_dados_do_usuario_logado(current_user: Usuario = Depends(get_current_us
     }
 
 
-@routerautenticacao.post(
-    "/login",
-    summary="Autenticar usuário",
-    description=(
-        "Endpoint para autenticar um usuário com base nas credenciais fornecidas (e-mail e senha). "
-        "Retorna um token de acesso do tipo 'Bearer' em caso de sucesso."
-    )
-)
+@routerautenticacao.post("/v1/api/login")
 def logar_usuario(
-    form_data: OAuth2PasswordRequestForm = Depends(),
+    form_data: LoginRequest,
     db: Session = Depends(get_db_session)
 ):
     """
     **Autenticar um usuário.**
-
-    - **form_data.username**: E-mail do usuário.
-    - **form_data.password**: Senha do usuário.
-    - **db**: Sessão do banco de dados injetada automaticamente.
-
-    **Respostas possíveis**:
-    - **200 OK**: Retorna o token de acesso.
-    - **401 Unauthorized**: Credenciais inválidas.
-
-    **Exemplo de resposta**:
-    ```json
-    {
-        "access_token": "eyJhbGciOiJIUzI1NiIsInR...",
-        "token_type": "bearer"
-    }
-    ```
     """
     logging.info(f"Tentativa de login para o e-mail: {form_data.username}")
     autenticacao_service = AutenticacaoService(db)
