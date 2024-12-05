@@ -48,7 +48,7 @@ def obter_dados_do_usuario_logado(current_user: Usuario = Depends(get_current_us
     }
 
 
-@routerautenticacao.post("/v1/api/login")
+@routerautenticacao.post("/login")
 def logar_usuario(
     form_data: LoginRequest,
     db: Session = Depends(get_db_session)
@@ -64,6 +64,6 @@ def logar_usuario(
         )
         logging.info(f"Login bem-sucedido para o e-mail: {form_data.username}")
         return {"access_token": usuario_token, "token_type": "bearer"}
-    except ValueError as e:
+    except Exception as e:
         logging.warning(f"Falha no login para o e-mail {form_data.username}: {e}")
         raise HTTPException(status_code=401, detail=str(e))
