@@ -32,6 +32,13 @@ Base.metadata.create_all(bind=engine)
 
 origins = ["*"]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # Permite todas as origens; ajuste conforme necessário
+    allow_credentials=True,
+    allow_methods=["*"],  # Permite todos os métodos; ajuste conforme necessário
+    allow_headers=["*"],  # Permite todos os cabeçalhos; ajuste conforme necessário
+)
 
 app.include_router(api_router, prefix="/v1/api", tags=["Vazamentos"])
 app.include_router(api_router_usuarios, prefix="/v1/api")
@@ -54,10 +61,12 @@ async def shutdown_event():
         logging.info("Agendador encerrado com a API.")  # Usando logs
 
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@app.get("/")
+async def root():
+    logging.info("Rota principal '/' acessada.")  # Log de acesso à rota principal
+    return {"message": "API está rodando com agendador integrado!"}
+
+
+@app.get("/hora_atual")
+async def hora_atual():
+    return {"hora_atual": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
