@@ -23,6 +23,11 @@ endpointVazamento = "/vazamentos/"
 
 
 
+from fastapi import HTTPException, status
+
+from fastapi import HTTPException, status
+
+
 @router.get(
     endpointVazamento + "procurar/{email}",
     response_model=List[schemas.VazamentoResponse],
@@ -50,21 +55,55 @@ async def obter_vazamentos_do_usuario_por_email(
     """
     logging.info(f"Requisição recebida para buscar vazamentos do usuário com e-mail: {email}")
 
+    # Verifica se o usuário tem permissão para buscar este e-mail
     if current_user.email != email:
-        raise HTTPException(status_code=403, detail="Você não tem permissão para acessar os vazamentos deste usuário.")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Você não tem permissão para acessar os vazamentos deste usuário."
+        )
 
     vazamento_service = VazamentoService(db)
 
     try:
+
         vazamentoEncontrado = await vazamento_service.obter_vazamentos_pelo_email_usuario_e_salva_no_db(email)
-        if vazamentoEncontrado:
-            logging.info(f"Vazamentos encontrados para o e-mail: {email}")
-        else:
-            logging.warning(f"Nenhum vazamento encontrado para o e-mail: {email}")
+        logging.info(f"Vazamentos encontrados para o e-mail: {email}")
         return vazamentoEncontrado
+
+    except HTTPException as e:
+
+        if e.status_code == status.HTTP_404_NOT_FOUND:
+            logging.warning(f"Nenhum vazamento encontrado para o e-mail: {email}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Nenhum vazamento encontrado para o e-mail: {email}"
+            )
+        elif e.status_code == status.HTTP_429_TOO_MANY_REQUESTS:
+            logging.warning(f"Limite de requisições excedido para o e-mail: {email}")
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Limite de solicitações excedido. Tente novamente mais tarde."
+            )
+        elif e.status_code == status.HTTP_503_SERVICE_UNAVAILABLE:
+            logging.error(f"Serviço indisponível ao buscar vazamentos para o e-mail: {email}")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Serviço indisponível. Tente novamente mais tarde."
+            )
+        else:
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Erro ao buscar vazamentos."
+            )
+
     except Exception as e:
-        logging.error(f"Erro ao buscar vazamentos para o e-mail {email}: {e}")
-        raise HTTPException(status_code=500, detail="Erro ao buscar vazamentos")
+        logging.error(f"Erro inesperado ao buscar vazamentos para o e-mail {email}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao buscar vazamentos."
+        )
+
 
 """@router.get(endpointVazamento + "exporvazamentos/", response_model=List[schemas.VazamentoResponse])
 def expor_vazamentos(skip: int = 0, limit: int = 100, db: Session = Depends(get_db_session)):

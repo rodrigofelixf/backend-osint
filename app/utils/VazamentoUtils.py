@@ -108,7 +108,7 @@ async def notificar_vazamento_usuario_por_email_demonstrativo(email_usuario: str
                 <h2>Alerta de Vazamento de Dados</h2>
             </div>
             <div class="content">
-                <p>Olá Corno,</p>
+                <p>Olá Usuario,</p>
                 <p>Um novo vazamento foi identificado relacionado ao seu e-mail:</p>
                 <p><strong>Título:</strong> {titulo_vazamento}</p>
                 <p><strong>Data:</strong> {data}</p>
