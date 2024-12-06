@@ -5,6 +5,8 @@ import os
 from fastapi import HTTPException
 from datetime import datetime
 from dotenv import load_dotenv
+from sqlalchemy import desc
+
 from app.models.vazamentos import models, schemas
 from sqlalchemy.orm import Session
 
@@ -53,7 +55,12 @@ class VazamentoService:
         Busca vazamentos associados a um usuário no banco de dados.
         Garante que o campo data_classes seja retornado como uma lista válida.
         """
-        vazamentos = self.db.query(models.Vazamento).filter(usuario_id == models.Vazamento.usuario_id).all()
+        vazamentos = (
+            self.db.query(models.Vazamento)
+            .filter(usuario_id == models.Vazamento.usuario_id)
+            .order_by(desc(models.Vazamento.data_vazamento))
+            .all()
+        )
 
         for vazamento in vazamentos:
             # Verifica se `data_classes` está armazenado como string e converte para lista
