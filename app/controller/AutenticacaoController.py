@@ -5,17 +5,27 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db_session
-from app.models.autenticacao.login_schemas import LoginRequest
+from app.models.autenticacao.login_schemas import LoginRequest, ErrorResponse
 from app.models.usuarios.UsuarioModel import Usuario
 from app.security.depends import get_current_user
 from app.services.AutenticacaoService import AutenticacaoService
 
 routerautenticacao = APIRouter()
 
+
 @routerautenticacao.get(
     "/profile",
     summary="Obter dados do usuário logado",
-    description="Endpoint protegido que retorna os dados do usuário atualmente autenticado, incluindo nome, e-mail e configurações."
+    description="Endpoint protegido que retorna os dados do usuário atualmente autenticado, incluindo nome, e-mail e configurações.",
+    responses={
+        200: {
+            "description": "Dados do usuário autenticado retornados com sucesso.",
+        },
+        401: {
+            "description": "Token inválido ou ausente.",
+            "model": ErrorResponse,
+        },
+    },
 )
 def obter_dados_do_usuario_logado(current_user: Usuario = Depends(get_current_user)):
     """
@@ -48,14 +58,33 @@ def obter_dados_do_usuario_logado(current_user: Usuario = Depends(get_current_us
     }
 
 
+@routerautenticacao.post(
+    "/login",
+    responses={
+        401: {
+            "description": "Credenciais inválidas ou autenticação falhou.",
+            "model": ErrorResponse,
+        },
+        422: {
+            "description": "Erro de validação do cliente. Dados enviados estão incorretos.",
+            "model": ErrorResponse,
+        },
+        500: {
+            "description": "Erro interno do servidor.",
+            "model": ErrorResponse,
+        },
+    },
+)
 @routerautenticacao.post("/login")
 def logar_usuario(
-    form_data: LoginRequest,
-    db: Session = Depends(get_db_session)
+        form_data: OAuth2PasswordRequestForm = Depends(),
+        db: Session = Depends(get_db_session)
 ):
     """
-    **Autenticar um usuário.**
-    """
+        **Autenticar um usuário.**
+
+        Retorna um token de acesso se a autenticação for bem-sucedida.
+        """
     logging.info(f"Tentativa de login para o e-mail: {form_data.username}")
     autenticacao_service = AutenticacaoService(db)
     try:

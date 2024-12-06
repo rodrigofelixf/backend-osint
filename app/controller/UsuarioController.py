@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 
 from app.db.database import get_db_session
+from app.models.autenticacao.login_schemas import ErrorResponse
 from app.models.usuarios import UsuarioSchemas
 from app.models.usuarios.UsuarioModel import Usuario
 from app.security.depends import get_current_user
@@ -14,6 +15,7 @@ routerusuarios = APIRouter()
 
 
 endpointUsuario = "/usuarios/"
+
 @routerusuarios.get(
     endpointUsuario + "{usuarioId}",
     response_model=UsuarioSchemas.UsuarioReponse,
@@ -22,7 +24,17 @@ endpointUsuario = "/usuarios/"
         "Este endpoint permite buscar um usuário pelo seu ID. "
         "O ID deve ser um UUID válido."
     ),
-    tags=["Usuários"]
+    tags=["Usuários"],
+    responses={
+        404: {
+            "description": "Usuário não encontrado.",
+            "model": ErrorResponse,
+        },
+        422: {
+            "description": "Erro de validação nos parâmetros.",
+            "model": ErrorResponse,
+        },
+    }
 )
 def obter_usuario_por_id(usuarioId: uuid.UUID, db: Session = Depends(get_db_session)):
     logging.info(f"Recebida solicitação para obter usuário com ID: {usuarioId}")
@@ -42,7 +54,21 @@ def obter_usuario_por_id(usuarioId: uuid.UUID, db: Session = Depends(get_db_sess
         "Este endpoint permite buscar um usuário pelo e-mail. "
         "O e-mail informado deve estar registrado no sistema."
     ),
-    tags=["Usuários"]
+    tags=["Usuários"],
+    responses={
+        404: {
+            "description": "Usuário não encontrado.",
+            "model": ErrorResponse,
+        },
+        401: {
+            "description": "Token de autenticação inválido ou ausente.",
+            "model": ErrorResponse,
+        },
+        422: {
+            "description": "Erro de validação nos parâmetros.",
+            "model": ErrorResponse,
+        },
+    }
 )
 def obter_usuario_por_email(
     usuarioEmail: str,
@@ -67,7 +93,17 @@ def obter_usuario_por_email(
         "Este endpoint permite criar um novo usuário no sistema. "
         "Os dados obrigatórios incluem nome, e-mail e senha."
     ),
-    tags=["Usuários"]
+    tags=["Usuários"],
+    responses={
+        400: {
+            "description": "Erro de validação dos dados enviados.",
+            "model": ErrorResponse,
+        },
+        422: {
+            "description": "Erro de validação nos parâmetros.",
+            "model": ErrorResponse,
+        },
+    }
 )
 def criar_usuario(usuario: UsuarioSchemas.CreateUserRequest, db: Session = Depends(get_db_session)):
     logging.info("Recebida solicitação para criar um novo usuário.")
@@ -86,9 +122,27 @@ def criar_usuario(usuario: UsuarioSchemas.CreateUserRequest, db: Session = Depen
     summary="Atualizar dados de um usuário",
     description=(
         "Este endpoint permite que um administrador atualize os dados de um usuário existente. "
-        "Os dados podem incluir nome, e-mail, senha e notificacoes ativadas."
+        "Os dados podem incluir nome, e-mail, senha e notificações ativadas."
     ),
-    tags=["Usuários"]
+    tags=["Usuários"],
+    responses={
+        400: {
+            "description": "Erro de validação dos dados enviados.",
+            "model": ErrorResponse,
+        },
+        404: {
+            "description": "Usuário não encontrado.",
+            "model": ErrorResponse,
+        },
+        401: {
+            "description": "Token de autenticação inválido ou ausente.",
+            "model": ErrorResponse,
+        },
+        422: {
+            "description": "Erro de validação nos parâmetros.",
+            "model": ErrorResponse,
+        },
+    }
 )
 def atualizar_usuario(
     usuario_id: uuid.UUID,

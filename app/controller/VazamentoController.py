@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db_session
+from app.models.autenticacao.login_schemas import ErrorResponse
 from app.models.usuarios.UsuarioModel import Usuario
 from app.models.vazamentos import schemas
 from app.security.depends import get_current_user
@@ -36,23 +37,39 @@ from fastapi import HTTPException, status
         "Este endpoint protegido permite que um usuário autenticado obtenha "
         "os vazamentos associados ao e-mail informado. Apenas o próprio usuário pode acessar seus vazamentos."
     ),
-    tags=["Vazamentos"]
+    tags=["Vazamentos"],
+    responses={
+        200: {
+            "description": "Vazamentos encontrados com sucesso.",
+            "model": List[schemas.VazamentoResponse],
+        },
+        403: {
+            "description": "Permissão negada. O usuário não pode acessar vazamentos de outro e-mail.",
+            "model": ErrorResponse,
+        },
+        404: {
+            "description": "Nenhum vazamento encontrado para o e-mail.",
+            "model": ErrorResponse,
+        },
+        429: {
+            "description": "Limite de requisições excedido.",
+            "model": ErrorResponse,
+        },
+        503: {
+            "description": "Serviço indisponível.",
+            "model": ErrorResponse,
+        },
+        500: {
+            "description": "Erro interno ao buscar os vazamentos.",
+            "model": ErrorResponse,
+        },
+    }
 )
 async def obter_vazamentos_do_usuario_por_email(
     email: str,
     db: Session = Depends(get_db_session),
     current_user: Usuario = Depends(get_current_user)
 ):
-    """
-    **Obter vazamentos do usuário pelo e-mail.**
-
-    - **email**: E-mail do usuário para buscar vazamentos.
-    - **db**: Sessão de banco de dados injetada automaticamente.
-    - **current_user**: Usuário atualmente autenticado.
-
-    **Restrições**:
-    - O usuário só pode acessar os vazamentos associados ao seu próprio e-mail.
-    """
     logging.info(f"Requisição recebida para buscar vazamentos do usuário com e-mail: {email}")
 
     # Verifica se o usuário tem permissão para buscar este e-mail
@@ -65,13 +82,11 @@ async def obter_vazamentos_do_usuario_por_email(
     vazamento_service = VazamentoService(db)
 
     try:
-
         vazamentoEncontrado = await vazamento_service.obter_vazamentos_pelo_email_usuario_e_salva_no_db(email)
         logging.info(f"Vazamentos encontrados para o e-mail: {email}")
         return vazamentoEncontrado
 
     except HTTPException as e:
-
         if e.status_code == status.HTTP_404_NOT_FOUND:
             logging.warning(f"Nenhum vazamento encontrado para o e-mail: {email}")
             raise HTTPException(
@@ -91,7 +106,6 @@ async def obter_vazamentos_do_usuario_por_email(
                 detail="Serviço indisponível. Tente novamente mais tarde."
             )
         else:
-
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Erro ao buscar vazamentos."
@@ -130,7 +144,21 @@ def expor_vazamentos(skip: int = 0, limit: int = 100, db: Session = Depends(get_
         "fornecendo os detalhes como título, descrição e imagem opcional."
     ),
     tags=["Vazamentos"],
-    response_model=dict
+    response_model=dict,
+    responses={
+        200: {
+            "description": "E-mail enviado com sucesso.",
+            "model": dict,
+        },
+        400: {
+            "description": "Erro de validação nos dados enviados.",
+            "model": ErrorResponse,
+        },
+        500: {
+            "description": "Erro interno ao enviar o e-mail.",
+            "model": ErrorResponse,
+        },
+    }
 )
 async def notificar_vazamento_demonstrativo(notificacao: schemas.NotificacaoRequest):
     """
