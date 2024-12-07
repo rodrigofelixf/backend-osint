@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import uuid
 from fastapi import APIRouter, HTTPException, Depends, status
@@ -5,6 +6,7 @@ from sqlalchemy.orm import Session
 
 
 from app.db.database import get_db_session
+from app.db.redis.redis_cache import redis
 from app.models.autenticacao.login_schemas import ErrorResponse
 from app.models.usuarios import UsuarioSchemas
 from app.models.usuarios.UsuarioModel import Usuario
@@ -117,7 +119,7 @@ def criar_usuario(usuario: UsuarioSchemas.CreateUserRequest, db: Session = Depen
         raise HTTPException(status_code=400, detail=str(e))
 
 @routerusuarios.patch(
-    endpointUsuario + "/admin/{usuario_id}",
+    endpointUsuario + "admin/{usuario_id}",
     response_model=UsuarioSchemas.UsuarioReponse,
     summary="Atualizar dados de um usuário",
     description=(
@@ -144,21 +146,31 @@ def criar_usuario(usuario: UsuarioSchemas.CreateUserRequest, db: Session = Depen
         },
     }
 )
-def atualizar_usuario(
+async def atualizar_usuario(
     usuario_id: uuid.UUID,
     usuario: UsuarioSchemas.UpdateUserRequest,
     db: Session = Depends(get_db_session),
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user),
 ):
     logging.info(f"Recebida solicitação para atualizar o usuário com ID: {usuario_id}")
     usuario_service = UsuarioService(db)
+
     try:
+        # Atualiza o usuário no banco de dados
         usuario_atualizado = usuario_service.atualizar_usuario(usuario_id, usuario)
-        logging.info(f"Usuário com ID {usuario_id} atualizado com sucesso.")
+
+        # Invalida o cache após a atualização
+        cache_key = f"user_profile:{usuario_id}"
+        logging.info(f"Invalidando cache com chave: {cache_key}")
+        await redis.delete(cache_key)  # Remove o cache correspondente
+
+        logging.info(f"Usuário com ID {usuario_id} atualizado e cache invalidado.")
         return usuario_atualizado
+
     except ValueError as e:
         logging.error(f"Erro de validação ao atualizar usuário com ID {usuario_id}: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logging.error(f"Erro ao atualizar usuário com ID {usuario_id}: {str(e)}")
         raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+

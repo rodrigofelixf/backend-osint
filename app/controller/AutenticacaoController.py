@@ -1,10 +1,12 @@
 import logging
+import time
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db_session
+from app.db.redis.redis_cache import get_cache, set_cache
 from app.models.autenticacao.login_schemas import LoginRequest, ErrorResponse
 from app.models.usuarios.UsuarioModel import Usuario
 from app.security.depends import get_current_user
@@ -27,35 +29,33 @@ routerautenticacao = APIRouter()
         },
     },
 )
-def obter_dados_do_usuario_logado(current_user: Usuario = Depends(get_current_user)):
+async def obter_dados_do_usuario_logado(current_user: Usuario = Depends(get_current_user)):
     """
     **Obter o perfil do usuário autenticado.**
-
-    - **current_user**: Usuário atualmente autenticado, obtido via token.
-
-    **Respostas possíveis**:
-    - **200 OK**: Retorna os dados do usuário autenticado.
-    - **401 Unauthorized**: Token inválido ou ausente.
-
-    **Exemplo de resposta**:
-    ```json
-    {
-        "id": "123e4567-e89b-12d3-a456-426614174000",
-        "nome": "João Silva",
-        "email": "joao.silva@example.com",
-        "avatar": "https://example.com/avatar.jpg",
-        "notificacoes_ativadas": true
-    }
-    ```
     """
-    logging.info(f"Usuário autenticado acessou o perfil: {current_user.email}")
-    return {
-        "id": current_user.id,
+
+
+    cache_key = f"user_profile:{current_user.id}"
+    cached_data = await get_cache(cache_key)
+
+    if cached_data:
+        logging.info(f"Retornando dados do perfil do cache para o usuário: {current_user.id}")
+        return cached_data
+
+
+    user_data = {
+        "id": str(current_user.id),
         "nome": current_user.nome,
         "email": current_user.email,
         "avatar": current_user.avatar,
         "notificacoes_ativadas": current_user.notificacoes_ativadas,
     }
+
+
+    await set_cache(cache_key, user_data,300)
+
+    logging.info(f"Retornando dados do perfil do banco de dados para o usuário: {current_user.id}")
+    return user_data
 
 
 @routerautenticacao.post(
@@ -75,7 +75,6 @@ def obter_dados_do_usuario_logado(current_user: Usuario = Depends(get_current_us
         },
     },
 )
-@routerautenticacao.post("/login")
 def logar_usuario(
         form_data: OAuth2PasswordRequestForm = Depends(),
         db: Session = Depends(get_db_session)
