@@ -52,7 +52,7 @@ async def obter_dados_do_usuario_logado(current_user: Usuario = Depends(get_curr
     }
 
 
-    await set_cache(cache_key, user_data,300)
+    await set_cache(cache_key, user_data,86400)
 
     logging.info(f"Retornando dados do perfil do banco de dados para o usuário: {current_user.id}")
     return user_data
