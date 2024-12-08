@@ -1,16 +1,16 @@
 import logging
-import time
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db_session
-from app.db.redis.redis_cache import get_cache, set_cache
-from app.models.autenticacao.login_schemas import LoginRequest, ErrorResponse
+from app.db.redis.redis_cache import get_cache, set_cache, redis
+from app.models.autenticacao.login_schemas import ErrorResponse
 from app.models.usuarios.UsuarioModel import Usuario
 from app.security.depends import get_current_user
 from app.services.AutenticacaoService import AutenticacaoService
+from app.services.UsuarioService import UsuarioService
 
 routerautenticacao = APIRouter()
 
@@ -75,21 +75,30 @@ async def obter_dados_do_usuario_logado(current_user: Usuario = Depends(get_curr
         },
     },
 )
-def logar_usuario(
+async def logar_usuario(
         form_data: OAuth2PasswordRequestForm = Depends(),
         db: Session = Depends(get_db_session)
 ):
     """
         **Autenticar um usuário.**
 
-        Retorna um token de acesso se a autenticação for bem-sucedida.
+        Retorna um token de acesso se a autenticação for bem-sucedida e invalida o cache anterior.
         """
     logging.info(f"Tentativa de login para o e-mail: {form_data.username}")
     autenticacao_service = AutenticacaoService(db)
+    usuario_service = UsuarioService(db)
     try:
         usuario_token = autenticacao_service.autenticar_usuario(
             email=form_data.username, password=form_data.password
         )
+
+        usuario_autenticado = usuario_service.obter_usuario_pelo_email(form_data.username)
+
+        if usuario_autenticado:
+            cache_key = f"user_profile:{usuario_autenticado.id}"
+            logging.info(f"Invalidando cache com chave: {cache_key}")
+            await redis.delete(cache_key)
+
         logging.info(f"Login bem-sucedido para o e-mail: {form_data.username}")
         return {"access_token": usuario_token, "token_type": "bearer"}
     except Exception as e:

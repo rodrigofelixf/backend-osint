@@ -9,6 +9,7 @@ from app.models.autenticacao.login_schemas import ErrorResponse
 from app.models.usuarios.UsuarioModel import Usuario
 from app.models.vazamentos import schemas
 from app.security.depends import get_current_user
+from app.services.AutenticacaoService import verify_role
 from app.services.VazamentoService import VazamentoService
 
 from app.utils.VazamentoUtils import notificar_vazamento_usuario_por_email_demonstrativo
@@ -158,7 +159,8 @@ def expor_vazamentos(skip: int = 0, limit: int = 100, db: Session = Depends(get_
             "description": "Erro interno ao enviar o e-mail.",
             "model": ErrorResponse,
         },
-    }
+    },
+    dependencies=[Depends(verify_role("admin"))]
 )
 async def notificar_vazamento_demonstrativo(notificacao: schemas.NotificacaoRequest):
     """
