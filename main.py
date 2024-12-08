@@ -95,8 +95,4 @@ async def somente_admin():
     return {"message": "Bem-vindo, administrador!"}
 
 
-@app.get("/admin-or-moderator", dependencies=[Depends(verify_roles(["admin", "user"]))])
-async def admin_ou_moderador():
-    return {"message": "Bem-vindo, admin ou moderador!"}
-
 
