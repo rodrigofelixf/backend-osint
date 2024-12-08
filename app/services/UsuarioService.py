@@ -73,8 +73,11 @@ class UsuarioService:
         if usuario.senha:
             senha_criptografada = hash_password(usuario.senha)
             usuariodb.senha = senha_criptografada
+        if usuario.role:
+            usuariodb.role = usuario.role
         if usuario.notificacoes_ativadas is not None:
             usuariodb.notificacoes_ativadas = usuario.notificacoes_ativadas
+
 
         self.db.commit()
         self.db.refresh(usuariodb)

@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from redis import asyncio as aioredis
 
 
@@ -15,6 +15,7 @@ from app.controller.UsuarioController import routerusuarios as api_router_usuari
 from app.controller.AutenticacaoController import routerautenticacao as api_router_autenticacao
 from app.db.database import Base, engine
 from app.db.redis.redis_cache import redis
+from app.services.AutenticacaoService import verify_role, verify_roles
 from app.services.automacoes.TarefaVazamento import iniciar_agendador
 
 import logging
@@ -87,5 +88,15 @@ async def root():
 @app.get("/hora_atual")
 async def hora_atual():
     return {"hora_atual": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+
+
+@app.get("/admin-only", dependencies=[Depends(verify_role("admin"))])
+async def somente_admin():
+    return {"message": "Bem-vindo, administrador!"}
+
+
+@app.get("/admin-or-moderator", dependencies=[Depends(verify_roles(["admin", "user"]))])
+async def admin_ou_moderador():
+    return {"message": "Bem-vindo, admin ou moderador!"}
 
 

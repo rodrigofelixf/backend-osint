@@ -48,6 +48,7 @@ async def obter_dados_do_usuario_logado(current_user: Usuario = Depends(get_curr
         "nome": current_user.nome,
         "email": current_user.email,
         "avatar": current_user.avatar,
+        "role": current_user.role,
         "notificacoes_ativadas": current_user.notificacoes_ativadas,
     }
 

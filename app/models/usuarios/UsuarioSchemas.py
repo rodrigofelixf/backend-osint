@@ -15,6 +15,7 @@ class UsuarioReponse(BaseModel):
     nome: str
     email: str
     avatar: str
+    role: str
     notificacoes_ativadas: bool
 
     class Config:
@@ -25,6 +26,7 @@ class UpdateUserRequest(BaseModel):
     nome: Optional[str] = None
     email: Optional[str] = None
     senha: Optional[str] = None
+    role: Optional[str] = None
     notificacoes_ativadas: Optional[bool] = None
 
 

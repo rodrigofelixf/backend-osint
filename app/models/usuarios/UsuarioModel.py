@@ -1,4 +1,5 @@
 import uuid
+from operator import index
 
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime
 from datetime import datetime
@@ -18,6 +19,7 @@ class Usuario(Base):
     senha = Column(String, index=True, nullable=False)
     avatar = Column(String, index=True, nullable=False, default=usuario_avatar)
     data_criacao = Column(DateTime, index=True, default=datetime.utcnow)
+    role = Column(String, default="user", index=True)
     notificacoes_ativadas = Column(Boolean, index=True, default=False)
 
     vazamentos = relationship("Vazamento", back_populates="usuario")

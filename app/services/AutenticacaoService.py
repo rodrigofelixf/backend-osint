@@ -2,8 +2,10 @@ import logging
 
 from fastapi import HTTPException, Depends
 from sqlalchemy.orm import Session
+from starlette import status
 
 from app.models.usuarios.UsuarioModel import Usuario
+from app.security.depends import get_current_user
 from app.security.security import verify_password, create_access_token, verify_access_token
 
 
@@ -20,24 +22,28 @@ class AutenticacaoService:
             logging.warning(f"Falha na autenticação para o e-mail: {email} - Credenciais inválidas")
             raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
-        token = create_access_token(data={"sub": usuario.email})
+        token = create_access_token(data={"sub": usuario.email, "role": usuario.role})
         logging.info(f"Autenticação bem-sucedida para o e-mail: {email}")
         return token
 
-    def obter_usuario_pelo_token(self, token: str):
-        """Valida o token e retorna o usuário associado"""
-        logging.info("Validação do token em andamento")
 
-        payload = verify_access_token(token)
-        email = payload.get("sub")
-        if not email:
-            logging.warning("Token inválido: campo 'sub' ausente")
-            raise HTTPException(status_code=401, detail="Token inválido")
 
-        usuario = self.db.query(Usuario).filter(email == Usuario.email).first()
-        if not usuario:
-            logging.warning(f"Usuário não encontrado para o e-mail: {email}")
-            raise HTTPException(status_code=404, detail="Usuário não encontrado")
+def verify_role(role_necessaria: str):
+    def role_checker(current_user: Usuario = Depends(get_current_user)):
+        if current_user.role != role_necessaria:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Permissão negada. Requer papel: {role_necessaria}"
+            )
+        return current_user
+    return role_checker
 
-        logging.info(f"Usuário obtido pelo token: {email}")
-        return usuario
+def verify_roles(roles_permitidos: list):
+    def roles_checker(current_user: Usuario = Depends(get_current_user)):
+        if current_user.role not in roles_permitidos:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Permissão negada. Requer um dos papéis: {', '.join(roles_permitidos)}"
+            )
+        return current_user
+    return roles_checker

@@ -156,13 +156,12 @@ async def atualizar_usuario(
     usuario_service = UsuarioService(db)
 
     try:
-        # Atualiza o usuário no banco de dados
         usuario_atualizado = usuario_service.atualizar_usuario(usuario_id, usuario)
 
-        # Invalida o cache após a atualização
+
         cache_key = f"user_profile:{usuario_id}"
         logging.info(f"Invalidando cache com chave: {cache_key}")
-        await redis.delete(cache_key)  # Remove o cache correspondente
+        await redis.delete(cache_key)
 
         logging.info(f"Usuário com ID {usuario_id} atualizado e cache invalidado.")
         return usuario_atualizado
