@@ -13,23 +13,22 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/api/login")
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db_session)):
     """
-    Valida o token JWT, retorna o usuário associado e verifica o papel.
+    Valida o token JWT e retorna o usuário atualizado a partir do banco de dados.
     """
     payload = verify_access_token(token)
     if not payload:
         raise HTTPException(status_code=401, detail="Token inválido ou expirado")
 
     email = payload.get("sub")
-    role = payload.get("role")
-    if not email or not role:
+    if not email:
         raise HTTPException(status_code=401, detail="Token inválido ou incompleto")
 
     usuario = db.query(Usuario).filter(Usuario.email == email).first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
-    usuario.role = role
     return usuario
+
 
 
 

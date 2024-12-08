@@ -163,7 +163,7 @@ async def atualizar_usuario(
         logging.info(f"Invalidando cache com chave: {cache_key}")
         await redis.delete(cache_key)
 
-        logging.info(f"Usuário com ID {usuario_id} atualizado e cache invalidado.")
+        logging.info(f"Usuário com ID {usuario_id} atualizado.")
         return usuario_atualizado
 
     except ValueError as e:
