@@ -162,6 +162,9 @@ Para fazer as requisições HTTP abaixo, foi utilizada a ferramenta [httpie](htt
 Na documentação do Swagger clicando [aqui](http://127.0.0.1:8000/docs) você visualizará todos os endpoints documentados.
 
 
-Atenciosamente: Rodrigo Felix -  <a href="https://www.linkedin.com/in/rodrigofelixf/" target="_blank">
+Atenciosamente: Devs: Rodrigo Felix -  <a href="https://www.linkedin.com/in/rodrigofelixf/" target="_blank">
     <img src="https://img.shields.io/static/v1?label=Linkedin&message=@rodrigofelixf&color=8257E5&labelColor=000000" alt="@rodrigofelixf" />
+</a> ,
+Leonan Lucius -  <a href="https://www.linkedin.com/in/leonamlucius" target="_blank">
+    <img src="https://img.shields.io/static/v1?label=Linkedin&message=@leonamlucius&color=8257E5&labelColor=000000" alt="@leonamlucius" />
 </a>
