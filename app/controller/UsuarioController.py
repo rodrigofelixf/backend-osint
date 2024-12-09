@@ -123,7 +123,7 @@ def criar_usuario(usuario: UsuarioSchemas.CreateUserRequest, db: Session = Depen
 
 
 @routerusuarios.patch(
-    endpointUsuario + "admin/{usuario_id}",
+    endpointUsuario + "{usuario_id}",
     response_model=UsuarioSchemas.UsuarioReponse,
     summary="Atualizar dados de um usuário",
     description=(
@@ -148,8 +148,7 @@ def criar_usuario(usuario: UsuarioSchemas.CreateUserRequest, db: Session = Depen
             "description": "Erro de validação nos parâmetros.",
             "model": ErrorResponse,
         },
-    },
-    dependencies=[Depends(verify_role("admin"))]
+    }
 )
 async def atualizar_usuario(
         usuario_id: uuid.UUID,

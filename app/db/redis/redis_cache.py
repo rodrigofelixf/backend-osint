@@ -4,8 +4,8 @@ from redis.asyncio import Redis
 import json
 from typing import Optional
 
-REDIS_DB = os.getenv("REDIS_DB")
-redis = Redis.from_url(REDIS_DB)
+##REDIS_DB = os.getenv("REDIS_DB")
+redis = Redis.from_url("redis://localhost")
 
 
 

@@ -26,7 +26,6 @@ class UpdateUserRequest(BaseModel):
     nome: Optional[str] = None
     email: Optional[str] = None
     senha: Optional[str] = None
-    role: Optional[str] = None
     notificacoes_ativadas: Optional[bool] = None
 
 
